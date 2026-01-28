@@ -1,0 +1,45 @@
+# FastAPI and ASGI
+fastapi==0.109.2
+uvicorn[standard]==0.27.1
+python-multipart==0.0.9
+
+# Database
+sqlalchemy==2.0.27
+psycopg2-binary==2.9.9
+alembic==1.13.1
+geoalchemy2==0.14.6  # PostGIS support
+
+# Redis
+redis==5.0.1
+hiredis==2.3.2
+
+# Firebase
+firebase-admin==6.4.0
+
+# Authentication
+python-jose[cryptography]==3.3.0
+argon2-cffi==23.1.0
+passlib==1.7.4
+python-dateutil==2.8.2
+
+# Pydantic
+pydantic==2.6.1
+pydantic-settings==2.1.0
+email-validator==2.1.0
+
+# Background Jobs
+apscheduler==3.10.4
+
+# HTTP Client
+httpx==0.26.0
+
+# Utilities
+python-dotenv==1.0.1
+typing-extensions==4.9.0
+
+# Development
+pytest==7.4.4
+pytest-asyncio==0.23.4
+pytest-cov==4.1.0
+black==24.1.1
+ruff==0.2.1

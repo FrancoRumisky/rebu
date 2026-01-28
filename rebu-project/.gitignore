@@ -1,0 +1,51 @@
+# --- OS / Editors ---
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# --- Python ---
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+.env.*
+*.log
+.pytest_cache/
+.mypy_cache/
+
+# --- Backend (alembic / build) ---
+backend/**/alembic.ini  # (solo si tenés secrets ahí; si no, sacalo)
+backend/**/migrations/*.pyc
+
+# --- Flutter / Dart ---
+**/.dart_tool/
+**/.packages
+**/build/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.metadata
+
+# Android
+**/android/.gradle/
+**/android/local.properties
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+
+# iOS
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/App.framework
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/flutter_export_environment.sh
+
+# Firebase (NO subir credenciales si no querés)
+**/google-services.json
+**/GoogleService-Info.plist
+
+# --- Node (si aparece) ---
+node_modules/
