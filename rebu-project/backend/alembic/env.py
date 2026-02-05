@@ -32,7 +32,7 @@ target_metadata = Base.metadata
 
 def get_url() -> str:
     # Usa DATABASE_URL generado desde .env / defaults
-    return settings.DATABASE_URL
+    return settings.db_url
 
 
 def run_migrations_offline() -> None:
