@@ -26,9 +26,6 @@ async def lifespan(app: FastAPI):
     
     # Start background workers
     workers.start()
-
-    print("DB:", urlparse(settings.db_url).hostname, urlparse(settings.db_url).path)
-    print("SECRET_KEY set:", settings.SECRET_KEY != "CHANGE_ME")
     
     yield
     

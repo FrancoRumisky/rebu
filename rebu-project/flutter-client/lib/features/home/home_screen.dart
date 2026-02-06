@@ -15,59 +15,69 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
   @override
-  Widget build(BuildContext context) {
-    final authService = Provider.of<AuthService>(context);
-    final user = authService.user;
+Widget build(BuildContext context) {
+  final authService = Provider.of<AuthService>(context);
+  final user = authService.user;
 
-    return Scaffold(
-    appBar: AppBar(
-      automaticallyImplyLeading: false,
-      leading: const SizedBox.shrink(), // ✅ mata flecha incluso si algo la intenta meter
-      title: const Text('Rebu'),
-    actions: [
-    IconButton(
+  return WillPopScope(
+    onWillPop: () async {
+      final shouldExit = await showDialog<bool>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Salir de Rebu'),
+          content: const Text('¿Querés cerrar la app?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Salir'),
+            ),
+          ],
+        ),
+      );
+
+      return shouldExit ?? false;
+    },
+    child: Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: const SizedBox.shrink(),
+        title: const Text('Rebu'),
+        actions: [
+          IconButton(
             icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {
-            // Navigate to notifications
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: const Icon(Icons.person_outlined),
+            onPressed: () => Navigator.pushNamed(context, '/profile'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              await context.read<AuthService>().logout();
+              if (!context.mounted) return;
+              Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
             },
-          ),
-    IconButton(
-      icon: const Icon(Icons.person_outlined),
-      onPressed: () {
-        Navigator.pushNamed(context, '/profile');
-      },
-    ),
-    IconButton(
-      icon: const Icon(Icons.logout),
-      onPressed: () async {
-        await context.read<AuthService>().logout();
-        if (!context.mounted) return;
-        Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-      },
-    ),
-  ],
-),
-      body: _selectedIndex == 0 ? _buildHomeTab(user) : _buildTripsTab(),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Inicio',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            label: 'Mis viajes',
           ),
         ],
       ),
-    );
-  }
+      body: _selectedIndex == 0 ? _buildHomeTab(user) : _buildTripsTab(),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: (index) => setState(() => _selectedIndex = index),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
+          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Mis viajes'),
+        ],
+      ),
+    ),
+  );
+}
+
 
   Widget _buildHomeTab(Map<String, dynamic>? user) {
     return SingleChildScrollView(

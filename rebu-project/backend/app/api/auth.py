@@ -8,11 +8,11 @@ from datetime import datetime
 from app.core.database import get_db
 from app.core.security import (
     get_password_hash, verify_password,
-    create_access_token, create_refresh_token
+    create_access_token, create_refresh_token,decode_token
 )
 from app.schemas.auth import (
     UserRegister, DriverRegister, LoginRequest,
-    TokenResponse, FCMTokenUpdate
+    TokenResponse, FCMTokenUpdate, RefreshTokenRequest
 )
 from app.repositories import UserRepository, DriverRepository
 from app.core.security import get_current_user
@@ -141,6 +141,38 @@ async def login(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid credentials"
     )
+
+
+@router.post("/refresh", response_model=TokenResponse)
+async def refresh(data: RefreshTokenRequest):
+    """
+    Refresh access token using a refresh token.
+    Returns a new access token and (optionally) a new refresh token.
+    """
+    payload = decode_token(data.refresh_token)
+
+    if payload.get("type") != "refresh":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token type"
+        )
+
+    user_id = payload.get("sub")
+    role = payload.get("role")
+
+    if user_id is None or role is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token"
+        )
+
+    # Generar tokens nuevos
+    access_token = create_access_token({"sub": user_id, "role": role})
+
+    # ✅ Recomendado: rotar refresh token (más seguro) y mantener compatibilidad con tu Flutter actual
+    refresh_token = create_refresh_token({"sub": user_id, "role": role})
+
+    return TokenResponse(access_token=access_token, refresh_token=refresh_token)
 
 
 @router.post("/fcm-token")

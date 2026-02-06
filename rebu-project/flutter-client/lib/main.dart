@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'core/config/theme.dart';
 import 'core/services/fcm_service.dart';
 import 'core/services/auth_service.dart';
+import 'core/services/api_service.dart';
 import 'features/auth/login_screen.dart';
 import 'features/auth/register_screen.dart';
 import 'features/home/home_screen.dart';
@@ -19,6 +20,9 @@ void main() async {
   
   // Initialize FCM
   await FCMService().initialize();
+
+  // ✅ Cargar tokens antes de arrancar la app
+  await ApiService().init();
   
   runApp(const RebuClientApp());
 }
@@ -58,9 +62,15 @@ class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
-    
-    return authService.isAuthenticated 
-        ? const HomeScreen() 
+
+    if (authService.isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return authService.isAuthenticated
+        ? const HomeScreen()
         : const LoginScreen();
   }
 }
