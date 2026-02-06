@@ -20,23 +20,33 @@ class _HomeScreenState extends State<HomeScreen> {
     final user = authService.user;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Rebu'),
-        actions: [
-          IconButton(
+    appBar: AppBar(
+      automaticallyImplyLeading: false,
+      leading: const SizedBox.shrink(), // ✅ mata flecha incluso si algo la intenta meter
+      title: const Text('Rebu'),
+    actions: [
+    IconButton(
             icon: const Icon(Icons.notifications_outlined),
             onPressed: () {
-              // Navigate to notifications
+            // Navigate to notifications
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.person_outlined),
-            onPressed: () {
-              Navigator.pushNamed(context, '/profile');
-            },
-          ),
-        ],
-      ),
+    IconButton(
+      icon: const Icon(Icons.person_outlined),
+      onPressed: () {
+        Navigator.pushNamed(context, '/profile');
+      },
+    ),
+    IconButton(
+      icon: const Icon(Icons.logout),
+      onPressed: () async {
+        await context.read<AuthService>().logout();
+        if (!context.mounted) return;
+        Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+      },
+    ),
+  ],
+),
       body: _selectedIndex == 0 ? _buildHomeTab(user) : _buildTripsTab(),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,

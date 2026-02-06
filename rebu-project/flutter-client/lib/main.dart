@@ -5,6 +5,7 @@ import 'core/config/theme.dart';
 import 'core/services/fcm_service.dart';
 import 'core/services/auth_service.dart';
 import 'features/auth/login_screen.dart';
+import 'features/auth/register_screen.dart';
 import 'features/home/home_screen.dart';
 import 'firebase_options.dart';
 
@@ -44,6 +45,7 @@ class RebuClientApp extends StatelessWidget {
           '/scheduled': (context) => const ScheduledTripScreen(),
           '/trip-tracking': (context) => const TripTrackingScreen(),
           '/profile': (context) => const ProfileScreen(),
+          '/register': (context) => const RegisterScreen(),
         },
       ),
     );

@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 from app.core.config import settings
 from app.core.database import init_db
 from app.workers.background_workers import workers
+from urllib.parse import urlparse
 
 # Import routers
 from app.api import auth, trips, drivers, users, admin
@@ -25,6 +26,9 @@ async def lifespan(app: FastAPI):
     
     # Start background workers
     workers.start()
+
+    print("DB:", urlparse(settings.db_url).hostname, urlparse(settings.db_url).path)
+    print("SECRET_KEY set:", settings.SECRET_KEY != "CHANGE_ME")
     
     yield
     

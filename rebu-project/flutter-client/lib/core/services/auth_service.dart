@@ -82,6 +82,7 @@ class AuthService extends ChangeNotifier {
       
       _isLoading = false;
       notifyListeners();
+      
       return true;
       
     } catch (e) {

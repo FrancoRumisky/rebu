@@ -41,4 +41,4 @@ def init_db():
     # Import all models here to ensure they're registered
     from app.models import user, driver, vehicle, trip_request, trip_offer, trip, wallet_transaction, subscription, driver_availability_block
     
-    Base.metadata.create_all(bind=engine)
+    #Base.metadata.create_all(bind=engine)

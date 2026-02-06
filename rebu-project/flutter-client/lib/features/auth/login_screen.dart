@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/services/auth_service.dart';
-import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -36,7 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (success) {
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -63,19 +62,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Logo
-                  Icon(
-                    Icons.local_shipping,
-                    size: 80,
-                    color: Theme.of(context).primaryColor,
+                  Image.asset(
+                    'assets/images/rebu-logo.png',
+                    height: 200,
+                    fit: BoxFit.contain,
                   ),
-                  const SizedBox(height: 16),
-                  
+          
                   // Title
-                  Text(
-                    'Rebu Cliente',
-                    style: Theme.of(context).textTheme.displaySmall,
-                    textAlign: TextAlign.center,
-                  ),
                   Text(
                     'Fletes rápidos y seguros',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -156,13 +149,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   // Register link
                   TextButton(
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const RegisterScreen(),
-                        ),
-                      );
-                    },
+                      Navigator.pushNamed(context, '/register'); // ✅
+                      },
                     child: const Text('¿No tienes cuenta? Regístrate'),
                   ),
                 ],
