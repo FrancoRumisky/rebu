@@ -53,8 +53,8 @@ async def register_user(
     )
     
     # Generate tokens
-    access_token = create_access_token({"sub": user.id, "role": "USER"})
-    refresh_token = create_refresh_token({"sub": user.id, "role": "USER"})
+    access_token = create_access_token({"sub": str(user.id), "role": "USER"})
+    refresh_token = create_refresh_token({"sub": str(user.id), "role": "USER"})
     
     return TokenResponse(
         access_token=access_token,
@@ -91,8 +91,8 @@ async def register_driver(
     )
     
     # Generate tokens
-    access_token = create_access_token({"sub": driver.id, "role": "DRIVER"})
-    refresh_token = create_refresh_token({"sub": driver.id, "role": "DRIVER"})
+    access_token = create_access_token({"sub": str(driver.id), "role": "DRIVER"})
+    refresh_token = create_refresh_token({"sub": str(driver.id), "role": "DRIVER"})
     
     return TokenResponse(
         access_token=access_token,
@@ -112,8 +112,8 @@ async def login(
     # Try user first
     user = user_repo.get_by_email(data.email)
     if user and verify_password(data.password, user.password_hash):
-        access_token = create_access_token({"sub": user.id, "role": "USER"})
-        refresh_token = create_refresh_token({"sub": user.id, "role": "USER"})
+        access_token = create_access_token({"sub": str(user.id), "role": "USER"})
+        refresh_token = create_refresh_token({"sub": str(user.id), "role": "USER"})
         
         user.last_login_at = datetime.utcnow()
         db.commit()
@@ -126,8 +126,8 @@ async def login(
     # Try driver
     driver = driver_repo.get_by_email(data.email)
     if driver and verify_password(data.password, driver.password_hash):
-        access_token = create_access_token({"sub": driver.id, "role": "DRIVER"})
-        refresh_token = create_refresh_token({"sub": driver.id, "role": "DRIVER"})
+        access_token = create_access_token({"sub":str(driver.id), "role": "DRIVER"})
+        refresh_token = create_refresh_token({"sub": str(driver.id), "role": "DRIVER"})
         
         driver.last_login_at = datetime.utcnow()
         db.commit()

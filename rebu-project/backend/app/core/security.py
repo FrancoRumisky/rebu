@@ -77,7 +77,11 @@ async def get_current_user(
     if payload.get("type") != "access":
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token type")
     
-    user_id: Optional[int] = payload.get("sub")
+    sub = payload.get("sub")
+    try:
+        user_id = int(sub)
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token subject")
     role: Optional[str] = payload.get("role")
     
     if user_id is None or role is None:
