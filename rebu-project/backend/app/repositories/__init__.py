@@ -25,12 +25,12 @@ class UserRepository:
     def get_by_phone(self, phone: str) -> Optional[User]:
         return self.db.query(User).filter(User.phone == phone).first()
     
-    def create(self, email: str, phone: str, password_hash: str, full_name: str) -> User:
+    def create(self, email: str, phone: str | None, password_hash: str | None, full_name: str) -> User:
         user = User(
-            email=email,
-            phone=phone,
-            password_hash=password_hash,
-            full_name=full_name
+        email=email,
+        phone=phone,
+        password_hash=password_hash,
+        full_name=full_name
         )
         self.db.add(user)
         self.db.commit()

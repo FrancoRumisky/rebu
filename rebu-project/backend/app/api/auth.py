@@ -17,6 +17,10 @@ from app.schemas.auth import (
 from app.repositories import UserRepository, DriverRepository
 from app.core.security import get_current_user
 
+import httpx
+from app.core.config import settings
+from app.schemas.auth import GoogleLoginRequest
+from app.core.security import get_current_user
 
 router = APIRouter()
 
@@ -188,5 +192,91 @@ async def update_fcm_token(
     
     return {"message": "FCM token updated"}
 
+@router.post("/google", response_model=TokenResponse)
+async def google_login(
+    data: GoogleLoginRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    Login/Signup with Google ID Token.
+    Verifica el id_token contra Google tokeninfo, y devuelve JWT (access/refresh) propios.
+    """
+    if not settings.GOOGLE_CLIENT_ID:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="GOOGLE_CLIENT_ID not configured"
+        )
 
-from app.core.security import get_current_user
+    # 1) Verificar token con Google
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            r = await client.get(
+                "https://oauth2.googleapis.com/tokeninfo",
+                params={"id_token": data.id_token},
+            )
+        if r.status_code != 200:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Google token")
+
+        info = r.json()
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Google verification failed")
+
+    # 2) Validaciones mínimas
+    aud = info.get("aud")
+    if aud != settings.GOOGLE_CLIENT_ID:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Google token audience mismatch")
+
+    email = info.get("email")
+    email_verified = info.get("email_verified")
+    sub = info.get("sub")  # Google user id
+    name = info.get("name") or "Usuario"
+    picture = info.get("picture")
+
+    if not email or not sub:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Google token payload")
+
+    if str(email_verified).lower() not in ("true", "1"):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Email not verified")
+
+    user_repo = UserRepository(db)
+
+    # 3) Buscar usuario existente por email
+    user = user_repo.get_by_email(email)
+
+    if user:
+        # Si existe, lo marcamos como google si corresponde
+        if not user.google_sub:
+            user.google_sub = sub
+        user.auth_provider = "google"
+        if picture and not user.profile_image_url:
+            user.profile_image_url = picture
+
+        user.last_login_at = datetime.utcnow()
+        db.commit()
+        db.refresh(user)
+    else:
+        # 4) Crear usuario nuevo (phone/password quedan null hasta completar perfil)
+        user = user_repo.create(
+            email=email,
+            phone=None,
+            password_hash=None,
+            full_name=name,
+        )
+        user.auth_provider = "google"
+        user.google_sub = sub
+        user.profile_image_url = picture
+        user.is_verified = True
+        user.last_login_at = datetime.utcnow()
+        db.commit()
+        db.refresh(user)
+
+    # 5) Devolver tus JWT (igual que login normal)
+    access_token = create_access_token({"sub": str(user.id), "role": "USER"})
+    refresh_token = create_refresh_token({"sub": str(user.id), "role": "USER"})
+
+    return TokenResponse(access_token=access_token, refresh_token=refresh_token)
+
+
+

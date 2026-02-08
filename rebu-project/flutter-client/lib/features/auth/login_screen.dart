@@ -153,6 +153,18 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     child: const Text('¿No tienes cuenta? Regístrate'),
                   ),
+
+                  ElevatedButton.icon(
+  icon: const Icon(Icons.g_mobiledata), // o tu icono svg
+  label: const Text('Continuar con Google'),
+  onPressed: () async {
+    final ok = await context.read<AuthService>().loginWithGoogle();
+    if (!context.mounted) return;
+    if (ok) {
+      Navigator.pushReplacementNamed(context, '/home');
+    }
+  },
+),
                 ],
               ),
             ),

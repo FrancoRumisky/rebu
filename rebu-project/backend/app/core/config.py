@@ -83,6 +83,9 @@ class Settings(BaseSettings):
     
     # Workers
     ENABLE_BACKGROUND_WORKERS: bool = True
+
+    # Google Client ID
+    GOOGLE_CLIENT_ID: Optional[str] = None
     
     class Config:
         env_file = ".env"

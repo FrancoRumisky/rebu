@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'api_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService extends ChangeNotifier {
   final ApiService _apiService = ApiService();
@@ -167,4 +169,56 @@ class AuthService extends ChangeNotifier {
     }
     return 'Error al iniciar sesión. Intenta nuevamente';
   }
+
+  Future<bool> loginWithGoogle() async {
+  _isLoading = true;
+  _errorMessage = null;
+  notifyListeners();
+
+  try {
+    // 1) Google Sign-In
+    final googleUser = await GoogleSignIn().signIn();
+    if (googleUser == null) {
+      // user cancel
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+
+    final googleAuth = await googleUser.authentication;
+    final idToken = googleAuth.idToken;
+
+    if (idToken == null || idToken.isEmpty) {
+      throw Exception('No se pudo obtener idToken de Google');
+    }
+
+    // 2) Enviar idToken al backend -> obtener JWTs (access/refresh)
+    final response = await _apiService.post('/auth/google', data: {
+      'id_token': idToken,
+    });
+
+    // 3) Guardar tokens (igual que login normal)
+    final access = response.data['access_token'] as String?;
+    final refresh = response.data['refresh_token'] as String?;
+    if (access == null || refresh == null) {
+      throw Exception('Respuesta inválida del servidor');
+    }
+
+    await _apiService.setTokens(access, refresh);
+
+    _isAuthenticated = true;
+    await loadUser();
+
+    _isLoading = false;
+    notifyListeners();
+    return true;
+  } catch (e) {
+    _errorMessage = _getErrorMessage(e);
+    _isAuthenticated = false;
+    _user = null;
+    _isLoading = false;
+    notifyListeners();
+    return false;
+  }
+}
 }

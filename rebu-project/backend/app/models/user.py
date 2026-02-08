@@ -12,11 +12,15 @@ class User(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
-    phone = Column(String, unique=True, index=True, nullable=False)
-    password_hash = Column(String, nullable=False)
+    phone = Column(String, unique=True, index=True, nullable=True)
+    password_hash = Column(String, nullable=True)
     
     full_name = Column(String, nullable=False)
     profile_image_url = Column(String, nullable=True)
+
+    # Nuevos campos para social login
+    auth_provider = Column(String, nullable=False, default="local")  # local | google
+    google_sub = Column(String, unique=True, nullable=True)
     
     # Status
     is_active = Column(Boolean, default=True)

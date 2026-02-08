@@ -38,3 +38,6 @@ class RefreshTokenRequest(BaseModel):
 
 class FCMTokenUpdate(BaseModel):
     fcm_token: str
+
+class GoogleLoginRequest(BaseModel):
+    id_token: str
