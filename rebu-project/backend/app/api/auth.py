@@ -192,6 +192,7 @@ async def update_fcm_token(
     
     return {"message": "FCM token updated"}
 
+
 @router.post("/google", response_model=TokenResponse)
 async def google_login(
     data: GoogleLoginRequest,

@@ -64,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   // Logo
                   Image.asset(
                     'assets/images/rebu-logo.png',
-                    height: 200,
+                    height: 250,
                     fit: BoxFit.contain,
                   ),
           
@@ -155,16 +155,26 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
 
                   ElevatedButton.icon(
-  icon: const Icon(Icons.g_mobiledata), // o tu icono svg
-  label: const Text('Continuar con Google'),
-  onPressed: () async {
-    final ok = await context.read<AuthService>().loginWithGoogle();
-    if (!context.mounted) return;
-    if (ok) {
-      Navigator.pushReplacementNamed(context, '/home');
-    }
-  },
-),
+                    icon: const Icon(Icons.g_mobiledata),
+                    label: const Text('Continuar con Google'),
+                    onPressed: authService.isLoading
+                      ? null
+                      : () async {
+                    final ok = await context.read<AuthService>().loginWithGoogle();
+                    if (!context.mounted) return;
+
+                    if (!ok && (authService.errorMessage?.isNotEmpty ?? false)) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(authService.errorMessage!),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+
+          // ✅ No navegues. AuthWrapper se encarga.
+                    },
+                  ),
                 ],
               ),
             ),

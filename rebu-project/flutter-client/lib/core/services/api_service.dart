@@ -1,6 +1,9 @@
 import 'package:dio/dio.dart';
 import '../config/api_config.dart';
 import 'token_storage.dart'; // ✅ nuevo
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -177,6 +180,56 @@ class ApiService {
 
     return response.data;
   }
+
+  Future<Map<String, dynamic>> loginWithGoogle() async {
+  try {
+
+    print("holaaa");
+    final googleSignIn = GoogleSignIn(
+  scopes: <String>[
+    'email',
+    'profile',
+    'openid',
+  ],
+);
+
+final googleUser = await googleSignIn.signIn();
+    if (googleUser == null) {
+      throw Exception('LOGIN_CANCELLED');
+    }
+
+    final googleAuth = await googleUser.authentication;
+    final idToken = googleAuth.idToken;
+    final accessToken = googleAuth.accessToken;
+
+    if (idToken == null || accessToken == null) {
+      throw Exception('GOOGLE_TOKEN_MISSING');
+    }
+
+    final credential = GoogleAuthProvider.credential(
+      idToken: idToken,
+      accessToken: accessToken,
+    );
+
+    // Esto hace que aparezca en Firebase Auth (si está todo configurado)
+    await FirebaseAuth.instance.signInWithCredential(credential);
+
+    // ✅ OJO: sin slash inicial para respetar /api/v1 del baseUrl
+    final response = await post('auth/google', data: {
+      'id_token': idToken,
+    });
+
+    return response.data as Map<String, dynamic>;
+  } on FirebaseAuthException catch (e) {
+    // errores típicos: account-exists-with-different-credential, invalid-credential, etc.
+    throw Exception('FIREBASE_AUTH_${e.code}');
+  } catch (e) {
+    // log útil mientras debug
+    // ignore: avoid_print
+    print('loginWithGoogle error: $e');
+    rethrow;
+  }
+}
 
   Future<Map<String, dynamic>> register({
     required String email,
