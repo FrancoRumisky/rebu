@@ -6,6 +6,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 
 class ApiService {
+
+  
   static final ApiService _instance = ApiService._internal();
   factory ApiService() => _instance;
 
@@ -16,8 +18,15 @@ class ApiService {
   String? _refreshToken;
 
   bool _isRefreshing = false; // ✅ nuevo: evita múltiples refresh a la vez
+  late final GoogleSignIn _googleSignIn;
 
   ApiService._internal() {
+
+    _googleSignIn = GoogleSignIn(
+      serverClientId: '43533081267-jtamqb54anpn21fke0er9f6ooe80jfmr.apps.googleusercontent.com',
+      scopes: const ['email', 'profile', 'openid'],
+    );
+
     _dio = Dio(BaseOptions(
       baseUrl: ApiConfig.baseUrl,
       connectTimeout: ApiConfig.connectTimeout,
@@ -180,56 +189,49 @@ class ApiService {
 
     return response.data;
   }
+  
 
+  /// ✅ Google: obtiene idToken y lo manda al backend -> devuelve JWT propios
   Future<Map<String, dynamic>> loginWithGoogle() async {
-  try {
+    print("GOOGLE: start");
 
-    print("holaaa");
-    final googleSignIn = GoogleSignIn(
-  scopes: <String>[
-    'email',
-    'profile',
-    'openid',
-  ],
-);
+    // opcional para evitar estado zombie al re-login
+    // await _googleSignIn.signOut();
 
-final googleUser = await googleSignIn.signIn();
-    if (googleUser == null) {
-      throw Exception('LOGIN_CANCELLED');
+    final account = await _googleSignIn.signIn();
+    if (account == null) throw Exception('LOGIN_CANCELLED');
+
+    print("GOOGLE: got account");
+
+    final auth = await account.authentication;
+    final idToken = auth.idToken;
+
+    print("GOOGLE: idToken len ${idToken?.length}");
+
+    if (idToken == null || idToken.isEmpty) {
+      throw Exception('ID_TOKEN_MISSING');
     }
 
-    final googleAuth = await googleUser.authentication;
-    final idToken = googleAuth.idToken;
-    final accessToken = googleAuth.accessToken;
+    final response = await post(ApiConfig.loginWithGoogleEndpoint, data: {'id_token': idToken});
 
-    if (idToken == null || accessToken == null) {
-      throw Exception('GOOGLE_TOKEN_MISSING');
+    final access = response.data['access_token'] as String?;
+    final refresh = response.data['refresh_token'] as String?;
+
+    if (access == null || refresh == null) {
+      throw Exception('BACKEND_TOKEN_MISSING');
     }
 
-    final credential = GoogleAuthProvider.credential(
-      idToken: idToken,
-      accessToken: accessToken,
-    );
+    await setTokens(access, refresh);
 
-    // Esto hace que aparezca en Firebase Auth (si está todo configurado)
-    await FirebaseAuth.instance.signInWithCredential(credential);
-
-    // ✅ OJO: sin slash inicial para respetar /api/v1 del baseUrl
-    final response = await post('auth/google', data: {
-      'id_token': idToken,
-    });
-
+    print("GOOGLE: backend ok");
     return response.data as Map<String, dynamic>;
-  } on FirebaseAuthException catch (e) {
-    // errores típicos: account-exists-with-different-credential, invalid-credential, etc.
-    throw Exception('FIREBASE_AUTH_${e.code}');
-  } catch (e) {
-    // log útil mientras debug
-    // ignore: avoid_print
-    print('loginWithGoogle error: $e');
-    rethrow;
   }
-}
+
+  Future<void> signOutGoogle() async {
+    try {
+      await _googleSignIn.signOut();
+    } catch (_) {}
+  }
 
   Future<Map<String, dynamic>> register({
     required String email,

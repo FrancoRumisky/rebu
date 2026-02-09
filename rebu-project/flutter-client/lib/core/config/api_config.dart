@@ -16,11 +16,13 @@ class ApiConfig {
   // Endpoints
   static const String loginEndpoint = '/auth/login';
   static const String registerUserEndpoint = '/auth/register/user';
+  static const String loginWithGoogleEndpoint = '/auth/google';
   static const String createOnDemandTripEndpoint = '/trips/request/on-demand';
   static const String createScheduledTripEndpoint = '/trips/request/scheduled';
   static const String myTripsEndpoint = '/trips/my-requests';
   static const String tripDetailsEndpoint = '/trips/request';
   static const String updateFcmTokenEndpoint = '/auth/fcm-token';
+  static const String refreshTokenEndpoint = '/auth/refresh';
   static const String profileEndpoint = '/users/me';
   static const String tripsHistoryEndpoint = '/users/trips';
   

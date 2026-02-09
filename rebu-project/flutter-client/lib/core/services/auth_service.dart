@@ -86,6 +86,38 @@ class AuthService extends ChangeNotifier {
     }
   }
 
+  Future<bool> loginWithGoogle() async {
+  _isLoading = true;
+  _errorMessage = null;
+  notifyListeners();
+
+  try {
+    await _apiService.loginWithGoogle();
+
+    _isAuthenticated = true;
+    await loadUser();
+    if (_user == null) throw Exception('PROFILE_LOAD_FAILED');
+
+    _isLoading = false;
+    notifyListeners();
+    return true;
+  } catch (e) {
+    if (e.toString().contains('LOGIN_CANCELLED')) {
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+
+    _errorMessage = _getErrorMessage(e);
+    _isAuthenticated = false;
+    _user = null;
+    _isLoading = false;
+    notifyListeners();
+    return false;
+  }
+}
+  
+
   Future<bool> register({
     required String email,
     required String phone,
@@ -151,6 +183,7 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<void> logout() async {
+    await _apiService.signOutGoogle();
     await _apiService.clearTokens();
     _isAuthenticated = false;
     _user = null;
@@ -170,35 +203,4 @@ class AuthService extends ChangeNotifier {
     return 'Error al iniciar sesión. Intenta nuevamente';
   }
 
-  Future<bool> loginWithGoogle() async {
-  _isLoading = true;
-  _errorMessage = null;
-  notifyListeners();
-
-  try {
-    final response = await _apiService.loginWithGoogle();
-
-    await _apiService.setTokens(
-      response['access_token'],
-      response['refresh_token'],
-    );
-
-    _isAuthenticated = true;
-    await loadUser();
-
-    _isLoading = false;
-    notifyListeners();
-    return true;
-  } catch (e) {
-    if (e.toString().contains('LOGIN_CANCELLED')) {
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    }
-    _errorMessage = _getErrorMessage(e);
-    _isLoading = false;
-    notifyListeners();
-    return false;
-  }
-}
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/services/auth_service.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -64,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   // Logo
                   Image.asset(
                     'assets/images/rebu-logo.png',
-                    height: 250,
+                    height: 280,
                     fit: BoxFit.contain,
                   ),
           
@@ -76,7 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 48),
+                  const SizedBox(height: 40),
                   
                   // Email
                   TextFormField(
@@ -154,27 +155,53 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: const Text('¿No tienes cuenta? Regístrate'),
                   ),
 
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.g_mobiledata),
-                    label: const Text('Continuar con Google'),
-                    onPressed: authService.isLoading
-                      ? null
-                      : () async {
-                    final ok = await context.read<AuthService>().loginWithGoogle();
-                    if (!context.mounted) return;
-
-                    if (!ok && (authService.errorMessage?.isNotEmpty ?? false)) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(authService.errorMessage!),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                    }
-
-          // ✅ No navegues. AuthWrapper se encarga.
-                    },
-                  ),
+                  ElevatedButton(
+  onPressed: authService.isLoading
+      ? null
+      : () async {
+          final ok = await context.read<AuthService>().loginWithGoogle();
+          if (!context.mounted) return;
+          if (ok) {
+            Navigator.pushNamedAndRemoveUntil(context, '/home', (_) => false);
+          }
+        },
+  style: ElevatedButton.styleFrom(
+    backgroundColor: const Color(0xFFF1F3F4), // gris Google
+    foregroundColor: Colors.black87,
+    elevation: 1,
+    padding: const EdgeInsets.symmetric(
+      vertical: 12,
+      horizontal: 0,
+    ),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(8),
+    ),
+    visualDensity: VisualDensity.compact,
+    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    minimumSize: const Size(0, 0),
+  ),
+  child: Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      SizedBox(
+        width: 40,
+        height: 40,
+        child: SvgPicture.asset(
+          'assets/icons/android_neutral_sq_na.svg',
+          fit: BoxFit.contain,
+        ),
+      ),
+      const SizedBox(width: 10),
+      const Text(
+        'Continuar con Google',
+        style: TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    ],
+  ),
+),
                 ],
               ),
             ),

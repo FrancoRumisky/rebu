@@ -17,13 +17,14 @@ void main() async {
    await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+   // ✅ Cargar tokens antes de arrancar la app
+  await ApiService().init();
   
   // Initialize FCM
   await FCMService().initialize();
 
-  // ✅ Cargar tokens antes de arrancar la app
-  await ApiService().init();
-  
+ 
   runApp(const RebuClientApp());
 }
 
@@ -61,17 +62,15 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authService = Provider.of<AuthService>(context);
+    final auth = context.watch<AuthService>();
 
-    if (authService.isLoading) {
+    if (auth.isLoading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }
 
-    return authService.isAuthenticated
-        ? const HomeScreen()
-        : const LoginScreen();
+    return auth.isAuthenticated ? const HomeScreen() : const LoginScreen();
   }
 }
 
